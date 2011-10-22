@@ -15,6 +15,7 @@ local selectionColor = {r = 23/255, g = 132/255, b = 209/255}
 -- textureName: path to texture to display on tab
 -- frameToToggle: frame or frame name or function returning frame
 local function AddTab(anchor, position, name, textureName, alwaysVisible, frameToToggle)
+	if not anchor then return end
 	-- get tabList and tabIndex
 	local tabList = nil
 	if position == "LEFT" then
