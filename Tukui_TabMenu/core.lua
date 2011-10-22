@@ -196,7 +196,7 @@ local tabAnchorLeft = ElvUI and ChatRBGDummy or TukuiChatBackgroundLeft -- C["ch
 
 -- Use a function to pass frame as parameter if you are not sure the frame is already created
 -- Encounter Journal
-AddTab(tabAnchorRight, "LEFT", "Encounter Journal", "Interface\\AddOns\\KdOTabMenu\\media\\EJ", true, EncounterJournal)
+AddTab(tabAnchorRight, "LEFT", "Encounter Journal", "Interface\\AddOns\\Tukui_TabMenu\\media\\EJ", true, EncounterJournal)
 -- Recount
 AddTab(tabAnchorRight, "LEFT", "Recount", "Interface\\AddOns\\Tukui_TabMenu\\media\\Recount", true, function() return Recount and Recount.MainWindow end)
 -- Omen
