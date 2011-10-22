@@ -1,291 +1,203 @@
+--## OptionalDeps: Recount, Omen
+
 local UI
 if ElvUI then UI=ElvUI else UI=Tukui end
-local T, C, L, DB = unpack(UI) -- Import Functions/Constants, Config, Locales
--- if not C.chat.background ~= true then return end
+local T, C, L = unpack(UI) -- Import Functions/Constants, Config, Locales
 
-----------------------------------------------------------------------
--- 							By Cadayron
--- Inspired by Tukz, Elv, Hydra codes and lduvall for icons
-----------------------------------------------------------------------
+-- Config
+local tabSize = C.actionbar.buttonsize
+local tabSpacing = C.actionbar.buttonspacing
+local selectionColor = {r = 23/255, g = 132/255, b = 209/255}
 
- -- Config variables
-font = C.media.font            			-- Font to be used for button text
-fontsize = 12                       	-- Size of font for button text
-tabwidth = C.actionbar.buttonsize     	-- Width of chatframe
-tabspacing = C.actionbar.buttonspacing
-if ElvUI then chatheight = C.chat.chatheight else chatheight = 111 end    		-- Height of chatframe
-tabheight = ((chatheight - (5 * tabspacing)) / 4) -- Height of tab
-local firstposition = (chatheight/2)-(tabheight/2)-tabspacing  --Set the positon for default chat height size
-if ElvUI then positionzone = ChatRBGDummy else positionzone = TukuiChatBackgroundRight end
-selectioncolor = {r = 23/255,g = 132/255,b = 209/255}
-
-----------------------------------------------------------------------
--- Array for Toggle and Lock functions
-----------------------------------------------------------------------
-TabIn = {}
-TabIn[1] = false
-TabIn[2] = false
-TabIn[3] = false
-TabIn[4] = false
-TLock = {}
-TLock[1] = false
-TLock[2] = false
-TLock[3] = false
-TLock[4] = false
-
-
-----------------------------------------------------------------------
--- Functions (Toggle and Update lock)
-----------------------------------------------------------------------
-T.ToggleTab = function(square,indexIn, id)
-	if indexIn == true then
-		square:Hide()
-		TabIn[id] = false
-		square:Show()
-		square:SetAlpha(0)
-	else
-		square:SetAlpha(1);
-		square:Show()
-		TabIn[id] = true
+-- anchor: tab anchor (tab will be added to this frame  .tabLeft, .tabRight, .tabTop, .tabBottom)
+-- position: LEFT, RIGHT, TOP, BOTTOM (position of tab relative to anchor)
+-- name: tab name
+-- textureName: path to texture to display on tab
+-- frameToToggle: frame or frame name or function returning frame
+local function AddTab(anchor, position, name, textureName, alwaysVisible, frameToToggle)
+	-- get tabList and tabIndex
+	local tabList = nil
+	if position == "LEFT" then
+		tabList = anchor.tabLeft
+	elseif position == "RIGHT" then
+		tabList = anchor.tabRight
+	elseif position == "TOP" then
+		tabList = anchor.tabTop
+	elseif position == "BOTTOM" then
+		tabList = anchor.tabBottom
 	end
-end
+	local tabIndex = 1 + (tabList and #tabList or 0)
 
-T.UpdateTabLock = function(skin,indexLock, id)
- if indexLock == true then
- 	TLock[id] = false
-  	skin:SetVertexColor(1,1,1)
- else
- 	TLock[id] = true;
- 	skin:SetVertexColor(35/255,164/255,255/255)
- end
-end
+	--print("AddTab:"..(tabList and #tabList or 'nil').."  "..tabIndex.."  "..name)
 
-
-tab = CreateFrame("Button", "Tab", positionzone) 	-- Tab creation
-tab:RegisterEvent("PLAYER_ENTERING_WORLD")
-
-for i = 1, 4 do
-	tab[i] = CreateFrame("Button", "Tab"..i, positionzone)
-	tab[i]:CreatePanel(tab[i], tabwidth, tabheight, "RIGHT", positionzone, "LEFT", 1, firstposition)
-	tab[i]:CreateShadow("Default")
-	if i == 1 then
-		tab[i]:SetPoint("RIGHT", positionzone, "LEFT", 1, firstposition)
+	-- creation
+	local button = CreateFrame("Button", name.."ToggleSwitch"..tabIndex, UIParent)
+	button:CreatePanel(button, tabSize, tabSize, "TOPRIGHT", anchor, "TOPLEFT", -1, 0)
+	if tabIndex == 1 then
+		if position == "LEFT" then
+			button:ClearAllPoints()
+			button:Point("TOPRIGHT", anchor, "TOPLEFT", -1, 0)
+		elseif position == "RIGHT" then
+			button:ClearAllPoints()
+			button:Point("TOPLEFT", anchor, "TOPRIGHT", 1, 0)
+		elseif position == "TOP" then
+			button:ClearAllPoints()
+			button:Point("BOTTOMLEFT", anchor, "TOPLEFT", 0, 1)
+		elseif position == "BOTTOM" then
+			button:ClearAllPoints()
+			button:Point("TOPLEFT", anchor, "BOTTOMLEFT", 0, -1)
+		end
 	else
-		tab[i]:SetPoint("TOP", tab[i-1], "BOTTOM", 0, -tabspacing)
+		if position == "LEFT" or position == "RIGHT" then
+			button:CreatePanel(button, tabSize, tabSize, "TOP", tabList[tabIndex-1], "BOTTOM", 0, -tabSpacing)
+		else
+			button:CreatePanel(button, tabSize, tabSize, "LEFT", tabList[tabIndex-1], "RIGHT", -tabSpacing, 0)
+		end
 	end
-	tab[i]:EnableMouse(true)
-	tab[i]:RegisterForClicks("AnyUp")
-	tab[i]:SetAlpha(0)
-	tab[i]:FontString(nil, font, fontsize)
-	tab[i].text:SetPoint("CENTER", 0, 0)
-		
-	if i == 1 then 		-- Atlasloot
-	
-		-- Set Texture
-		TTALoot = tab[i]:CreateTexture(nil, "ARTWORK")
-		TTALoot:SetPoint("TOPLEFT", tab[i], T.Scale(4), T.Scale(-4))
-		TTALoot:SetPoint("BOTTOMRIGHT",tab[i], T.Scale(-4), T.Scale(4))
-		TTALoot:SetTexture("Interface\\AddOns\\KdOTabMenu\\media\\AL")
-		
-		tab[i]:SetScript("OnEnter", function(self)
-			GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, T.Scale(6));
-			GameTooltip:ClearAllPoints()
-			GameTooltip:SetPoint("BOTTOM", self, "TOP", 0, T.mult)
-			GameTooltip:ClearLines()
-			if TLock[i] == true then
-				GameTooltip:AddDoubleLine("AtlasLoot : ", HIDE,1,1,1,selectioncolor)
-			else
-				GameTooltip:AddDoubleLine("AtlasLoot : ", SHOW,1,1,1,selectioncolor)
-			end
-			GameTooltip:Show()
-			if TLock[i] == true then return end;
-			T.ToggleTab(self, TabIn[i], 1); 
-		end) 
-		
-		tab[1]:SetScript("OnLeave", function(self)
+	button:CreateShadow("Default")
+	button:EnableMouse(true)
+	button:RegisterForClicks("AnyUp")
+	if not alwaysVisible then button:SetAlpha(0) end
+
+	-- texture
+	button.texture = button:CreateTexture(nil, "ARTWORK")
+	button.texture:SetTexture(textureName)
+	button.texture:Point("TOPLEFT", button, 2, -2)
+	button.texture:Point("BOTTOMRIGHT", button, -2, 2)
+
+	local function GetframeToToggle()
+		if type(frameToToggle) == "function" then return frameToToggle()
+		elseif type(frameToToggle) == "string" then return _G[frameToToggle]
+		else return frameToToggle end
+	end
+
+	-- texture color function
+	local function SetTextureColor(self)
+		local frame = GetframeToToggle()
+		--print("SetTextureColor:"..(frame and frame:GetName() or "nil").." "..tostring(frame and frame:IsShown() or "nil"))
+		if frame and frame:IsShown() then
+			-- Selected
+			self.texture:SetVertexColor(35/255, 164/255, 255/255)
+		else
+			-- Not selected
+			self.texture:SetVertexColor(1, 1, 1)
+		end
+	end
+
+	-- hook function
+	local function SetHook(self, frame)
+		if not frame.tabHooked then
+			-- hook OnShow/OnHide
+			frame:HookScript("OnShow",
+				function(hooked)
+					SetTextureColor(self)
+				end)
+			frame:HookScript("OnHide",
+				function(hooked)
+					SetTextureColor(self)
+					if not alwaysVisible then self:SetAlpha(0) end
+				end)
+			frame.tabHooked = true
+		end
+	end
+
+	-- tooltip function
+	local function SetTooltip(self, frame)
+		GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, T.Scale(6))
+		GameTooltip:ClearAllPoints()
+		GameTooltip:SetPoint("BOTTOM", self, "TOP", 0, T.mult)
+		GameTooltip:ClearLines()
+		if frame and frame:IsShown() then
+			GameTooltip:AddDoubleLine(HIDE, name, selectionColor.r, selectionColor.g, selectionColor.b, 1, 1, 1)
+		else
+			GameTooltip:AddDoubleLine(SHOW, name, selectionColor.r, selectionColor.g, selectionColor.b, 1, 1, 1)
+		end
+		GameTooltip:Show()
+	end
+
+	-- events
+	button:SetScript("OnEnter",
+		function(self)
+			local frame = GetframeToToggle()
+			if not alwaysVisible then button:SetAlpha(1) end
+			SetTooltip(self, frame)
+		end)
+	button:SetScript("OnLeave",
+		function(self)
+			local frame = GetframeToToggle()
+			if frame and not frame:IsShown() and not alwaysVisible then button:SetAlpha(0) end
 			GameTooltip:Hide()
-			if TLock[i] == true then return end;
-			T.ToggleTab(self, TabIn[i], 1);
-			
 		end)
-		
-		tab[i]:SetScript("OnMouseDown", function(self)
-			GameTooltip:ClearLines()
-			if TLock[i] == true then
-				GameTooltip:AddDoubleLine("AtlasLoot : ", SHOW,1,1,1,selectioncolor)
-			else
-				GameTooltip:AddDoubleLine("AtlasLoot : ", HIDE,1,1,1,selectioncolor)
-			end
-			-- if not IsAddOnLoaded("AtlasLoot") then AtlasLoot:LoadModule("AtlasLoot") end
-			ToggleFrame(AtlasLootDefaultFrame)
-			T.UpdateTabLock(TTALoot, TLock[i], 1); 
+	button:SetScript("OnMouseDown",
+		function(self)
+			self.texture:Point("TOPLEFT", self, 4, -4)
+			self.texture:Point("BOTTOMRIGHT", self, -4, 4)
 		end)
-		
-		
-	elseif i == 2 then 	-- Omen
-	
-		-- Set Texture
-		TTOmen = tab[i]:CreateTexture(nil, "ARTWORK")
-		TTOmen:SetPoint("TOPLEFT", tab[i], T.Scale(4), T.Scale(-4))
-		TTOmen:SetPoint("BOTTOMRIGHT",tab[i], T.Scale(-4), T.Scale(4))
-		TTOmen:SetTexture("Interface\\AddOns\\KdOTabMenu\\media\\Omen")
-		
-		tab[2]:SetScript("OnEnter", function(self)
-			GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, T.Scale(6));
-			GameTooltip:ClearAllPoints()
-			GameTooltip:SetPoint("BOTTOM", self, "TOP", 0, T.mult)
-			GameTooltip:ClearLines()
-			if TLock[i] == true then
-				GameTooltip:AddDoubleLine("Omen : ", HIDE,1,1,1,selectioncolor)
-			else
-				GameTooltip:AddDoubleLine("Omen : ", SHOW,1,1,1,selectioncolor)
-			end
-			GameTooltip:Show()
-			if TLock[i] == true then return end;
-			T.ToggleTab(self, TabIn[i], 2);
-		end) 
-		
-		tab[i]:SetScript("OnLeave", function(self)
-			GameTooltip:Hide()
-			if TLock[i] == true then return end;
-			T.ToggleTab(self, TabIn[i], 2);
+	button:SetScript("OnMouseUp",
+		function(self)
+			self.texture:Point("TOPLEFT", self, 2, -2)
+			self.texture:Point("BOTTOMRIGHT", self, -2, 2)
 		end)
-		
-		tab[i]:SetScript("OnMouseDown", function(self)
-			GameTooltip:ClearLines()
-			if TLock[i] == true then
-				GameTooltip:AddDoubleLine("Omen : ", SHOW,1,1,1,selectioncolor)
-			else
-				GameTooltip:AddDoubleLine("Omen : ", HIDE,1,1,1,selectioncolor)
-			end
-			ToggleFrame(Omen.Anchor);
-			T.UpdateTabLock(TTOmen, TLock[i], 2);
-		end)
-		
-		
-	elseif i == 3 then 	-- Recount
-		
-		-- Set Texture
-		TTRecount = tab[i]:CreateTexture(nil, "ARTWORK")
-		TTRecount:SetPoint("TOPLEFT", tab[i], T.Scale(4), T.Scale(-4))
-		TTRecount:SetPoint("BOTTOMRIGHT",tab[i], T.Scale(-4), T.Scale(4))
-		TTRecount:SetTexture("Interface\\AddOns\\KdOTabMenu\\media\\Recount")
-		
-		tab[i]:SetScript("OnEnter", function(self)
-			GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, T.Scale(6));
-			GameTooltip:ClearAllPoints()
-			GameTooltip:SetPoint("BOTTOM", self, "TOP", 0, T.mult)
-			GameTooltip:ClearLines()
-			if TLock[i] == true then
-				GameTooltip:AddDoubleLine("Recount : ", HIDE,1,1,1,selectioncolor)
-			else
-				GameTooltip:AddDoubleLine("Recount : ", SHOW,1,1,1,selectioncolor)
-			end
-			GameTooltip:Show() 
-			if TLock[i] == true then return end; 
-			T.ToggleTab(self, TabIn[i], 3); 
-		end) 
-		
-		tab[i]:SetScript("OnLeave", function(self) 
-			GameTooltip:Hide()
-			if TLock[i] == true then return end;
-			T.ToggleTab(self, TabIn[i], 3); 
-		end)
-		
-		tab[i]:SetScript("OnMouseDown", function(self)
-			GameTooltip:ClearLines()
-			if TLock[i] == true then
-				GameTooltip:AddDoubleLine("Recount : ", SHOW,1,1,1,selectioncolor)
-			else
-				GameTooltip:AddDoubleLine("Recount : ", HIDE,1,1,1,selectioncolor)
-			end 
-			ToggleFrame(Recount.MainWindow); 
-			Recount.RefreshMainWindow(); 
-			T.UpdateTabLock(TTRecount, TLock[i], 3); 
-		end)
-		
-	elseif i == 4 then 		-- Encounter Journal
-	
-		-- Set Texture
-		TTEncJourn = tab[i]:CreateTexture(nil, "ARTWORK")
-		TTEncJourn:SetPoint("TOPLEFT", tab[i], T.Scale(4), T.Scale(-4))
-		TTEncJourn:SetPoint("BOTTOMRIGHT",tab[i], T.Scale(-4), T.Scale(4))
-		TTEncJourn:SetTexture("Interface\\AddOns\\KdOTabMenu\\media\\EJ")
-		
-		tab[i]:SetScript("OnEnter", function(self)
-			GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, T.Scale(6));
-			GameTooltip:ClearAllPoints()
-			GameTooltip:SetPoint("BOTTOM", self, "TOP", 0, T.mult)
-			GameTooltip:ClearLines()
-			if TLock[i] == true then
-				GameTooltip:AddDoubleLine("Encounter Journal : ", HIDE,1,1,1,selectioncolor)
-			else
-				GameTooltip:AddDoubleLine("Encounter Journal : ", SHOW,1,1,1,selectioncolor)
-			end
-			GameTooltip:Show()  
-			if TLock[i] == true then return end; 
-			T.ToggleTab(self, TabIn[i], 4); 
-		end) 
-		
-		tab[i]:SetScript("OnLeave", function(self)
-			GameTooltip:Hide()
-			if TLock[i] == true then return end; 
-			T.ToggleTab(self, TabIn[i], 4); 
-		end)
-		
-		tab[i]:SetScript("OnMouseDown", function(self)
-			GameTooltip:ClearLines()
-			if TLock[i] == true then
-				GameTooltip:AddDoubleLine("Encounter Journal : ", SHOW,1,1,1,selectioncolor)
-			else
-				GameTooltip:AddDoubleLine("Encounter Journal : ", HIDE,1,1,1,selectioncolor)
-			end 
-			--SlashCmdList.CONFIG1('');
-			ToggleFrame(EncounterJournal);
-			T.UpdateTabLock(TTEncJourn, TLock[i], 4); 
-		end)
-		
-	-- elseif i == 4 then 		-- Elvui ConfigUi
-	
-		--Set Texture
-		-- TTElvconf = tab[i]:CreateTexture(nil, "ARTWORK")
-		-- TTElvconf:SetPoint("TOPLEFT", tab[i], T.Scale(4), T.Scale(-4))
-		-- TTElvconf:SetPoint("BOTTOMRIGHT",tab[i], T.Scale(-4), T.Scale(4))
-		-- TTElvconf:SetTexture("Interface\\AddOns\\KdOTabMenu\\media\\ec")
-		
-		-- tab[i]:SetScript("OnEnter", function(self)
-			-- GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, T.Scale(6));
-			-- GameTooltip:ClearAllPoints()
-			-- GameTooltip:SetPoint("BOTTOM", self, "TOP", 0, T.mult)
-			-- GameTooltip:ClearLines()
-			-- if TLock[i] == true then
-				-- GameTooltip:AddDoubleLine("ElvUi ConfigUi : ", HIDE,1,1,1,selectioncolor)
-			-- else
-				-- GameTooltip:AddDoubleLine("ElvUi ConfigUi : ", SHOW,1,1,1,selectioncolor)
+	button:SetScript("OnClick",
+		function(self)
+			local frame = GetframeToToggle()
+			-- load addon if not found
+			-- if not frame then
+				-- if not IsAddOnLoaded(name) then
+					-- print("Loading "..name.."...")
+					-- local loaded, reason = LoadAddOn(name)
+					-- if loaded then
+						-- print("Loaded successfully")
+						-- frame = GetframeToToggle()
+					-- else
+						-- print("Load failed, reason: ".._G["ADDON_"..reason])
+						-- return
+					-- end
+				-- end
 			-- end
-			-- GameTooltip:Show()  
-			-- if TLock[i] == true then return end; 
-			-- T.ToggleTab(self, TabIn[i], 4); 
-		-- end) 
-		
-		-- tab[i]:SetScript("OnLeave", function(self)
-			-- GameTooltip:Hide()
-			-- if TLock[i] == true then return end; 
-			-- T.ToggleTab(self, TabIn[i], 4); 
-		-- end)
-		
-		-- tab[i]:SetScript("OnMouseDown", function(self)
-			-- GameTooltip:ClearLines()
-			-- if TLock[i] == true then
-				-- GameTooltip:AddDoubleLine("ElvUi ConfigUi : ", SHOW,1,1,1,selectioncolor)
-			-- else
-				-- GameTooltip:AddDoubleLine("ElvUi ConfigUi : ", HIDE,1,1,1,selectioncolor)
-			-- end 
-			--SlashCmdList.CONFIG1('');
-			-- InterfaceOptionsFrame_OpenToCategory(ElvuiConfig.optionsFrames.Media)
-			-- T.UpdateTabLock(TTElvconf, TLock[i], 4); 
-		-- end)
-	
+			if frame then
+				SetHook(self, frame)
+				ToggleFrame(frame)
+				SetTooltip(self, frame)
+			else
+				print("Tukui_TabMenu: Frame not found")
+			end
+		end)
+
+	-- Set texture color
+	SetTextureColor(button)
+
+	local frame = GetframeToToggle()
+	if frame then
+		SetHook(button, frame)
 	end
-		
+
+	-- save tab in anchor frame
+	if position == "LEFT" then
+		if not anchor.tabLeft then anchor.tabLeft = { button }
+		else anchor.tabLeft[tabIndex] = button end
+	elseif position == "RIGHT" then
+		if not anchor.tabRight then anchor.tabRight = { button }
+		else anchor.tabRight[tabIndex] = button end
+	elseif position == "TOP" then
+		if not anchor.tabTop then anchor.tabTop = { button }
+		else anchor.tabTop[tabIndex] = button end
+	elseif position == "BOTTOM" then
+		if not anchor.tabBottom then anchor.tabBottom = { button }
+		else anchor.tabBottom[tabIndex] = button end
+	end
 end
+
+-------------------------------------------------------------------------
+-- Tabs
+-------------------------------------------------------------------------
+local tabAnchorRight = ElvUI and ChatRBGDummy or TukuiChatBackgroundRight -- C["chat"].["background"] must be set to true
+local tabAnchorLeft = ElvUI and ChatRBGDummy or TukuiChatBackgroundLeft -- C["chat"].["background"] must be set to true
+
+-- Use a function to pass frame as parameter if you are not sure the frame is already created
+-- Encounter Journal
+AddTab(tabAnchorRight, "LEFT", "Encounter Journal", "Interface\\AddOns\\KdOTabMenu\\media\\EJ", true, EncounterJournal)
+-- Recount
+AddTab(tabAnchorRight, "LEFT", "Recount", "Interface\\AddOns\\Tukui_TabMenu\\media\\Recount", true, function() return Recount and Recount.MainWindow end)
+-- Omen
+AddTab(tabAnchorRight, "LEFT", "Omen", "Interface\\AddOns\\Tukui_TabMenu\\media\\Omen", true, function() return Omen and Omen.Anchor end)

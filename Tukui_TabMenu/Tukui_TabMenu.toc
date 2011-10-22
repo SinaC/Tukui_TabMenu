@@ -1,7 +1,11 @@
 ## Interface: 40200
-## Title: |c0200dd00KdO|r Tab Menu|r
-## Notes: Follow the white rabbit
-## Author: Cadayron
-## Version: 2.0
+## Version: 3.0
+## Author: SinaC
+## Title: |cffC495DDTukui|r Tab Menu
+## Credits: Cadayron, Tukz, Elv, Hydra, lduvall
+## Notes: Tabs attached to chat frames
+## URL: https://github.com/SinaC/Tukui_TabMenu
 ## RequiredDeps: Tukui
+
+settings.lua
 core.lua
