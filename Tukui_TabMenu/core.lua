@@ -1,70 +1,110 @@
 --## OptionalDeps: Recount, Omen
 
+-- APIs
+-- AddToggleTab(anchor, position, name, textureName, alwaysVisible, frameToToggle) no return value
+--	anchor: tab anchor
+--	position: LEFT, RIGHT, TOP, BOTTOM (position of tab relative to anchor)
+--	name: tab name
+--	textureName: path to texture to display on tab
+--	alwaysVisible: if false, tab is visible only when mouseovering it
+--	frameToToggle: frame or frame name or function returning frame
+--
+-- AddCustomTab(anchor, position, name, textureName) return tab
+--	anchor: tab anchor
+--	position: LEFT, RIGHT, TOP, BOTTOM (position of tab relative to anchor)
+--	name: tab name
+--	textureName: path to texture to display on tab
+
 local UI
 if ElvUI then UI=ElvUI else UI=Tukui end
 local T, C, L = unpack(UI) -- Import Functions/Constants, Config, Locales
+
+-- Namespace
+Tukui_TabMenu = {}
 
 -- Config
 local tabSize = C.actionbar.buttonsize
 local tabSpacing = C.actionbar.buttonspacing
 local selectionColor = {r = 23/255, g = 132/255, b = 209/255}
 
--- anchor: tab anchor (tab will be added to this frame  .tabLeft, .tabRight, .tabTop, .tabBottom)
+local function GetTabListAndIndex(anchor, position)
+	local tabList = nil
+	if position == "LEFT" then
+		tabList = anchor.tabMenuLeft
+	elseif position == "RIGHT" then
+		tabList = anchor.tabMenuRight
+	elseif position == "TOP" then
+		tabList = anchor.tabMenuTop
+	elseif position == "BOTTOM" then
+		tabList = anchor.tabMenuBottom
+	end
+	local tabIndex = 1 + (tabList and #tabList or 0)
+	return tabList, tabIndex
+end
+
+local function AddToTabList(tab, tabIndex, anchor, position)
+	--print("AddToTabList: "..tostring(anchor.tabMenuLeft).."  "..tostring(anchor).."  "..tostring(tab))
+	if position == "LEFT" then
+		if not anchor.tabMenuLeft then anchor.tabMenuLeft = { tab }
+		else anchor.tabMenuLeft[tabIndex] = tab end
+	elseif position == "RIGHT" then
+		if not anchor.tabMenuRight then anchor.tabMenuRight = { tab }
+		else anchor.tabMenuRight[tabIndex] = tab end
+	elseif position == "TOP" then
+		if not anchor.tabMenuTop then anchor.tabMenuTop = { tab }
+		else anchor.tabMenuTop[tabIndex] = tab end
+	elseif position == "BOTTOM" then
+		if not anchor.tabMenuBottom then anchor.tabMenuBottom = { tab }
+		else anchor.tabMenuBottom[tabIndex] = tab end
+	end
+end
+
+-- anchor: tab anchor
 -- position: LEFT, RIGHT, TOP, BOTTOM (position of tab relative to anchor)
 -- name: tab name
 -- textureName: path to texture to display on tab
+-- alwaysVisible: if false, tab is visible only when mouseovering it
 -- frameToToggle: frame or frame name or function returning frame
-local function AddTab(anchor, position, name, textureName, alwaysVisible, frameToToggle)
+function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysVisible, frameToToggle)
 	if not anchor then return end
 	-- get tabList and tabIndex
-	local tabList = nil
-	if position == "LEFT" then
-		tabList = anchor.tabLeft
-	elseif position == "RIGHT" then
-		tabList = anchor.tabRight
-	elseif position == "TOP" then
-		tabList = anchor.tabTop
-	elseif position == "BOTTOM" then
-		tabList = anchor.tabBottom
-	end
-	local tabIndex = 1 + (tabList and #tabList or 0)
-
-	--print("AddTab:"..(tabList and #tabList or 'nil').."  "..tabIndex.."  "..name)
+	local tabList, tabIndex = GetTabListAndIndex(anchor, position)
+	--print("AddToggleTab:"..tostring(tabList).."  "..tostring(tabIndex).."  "..tostring(anchor).."  "..tostring(tabSize))
 
 	-- creation
-	local button = CreateFrame("Button", name.."ToggleSwitch"..tabIndex, UIParent)
-	button:CreatePanel(button, tabSize, tabSize, "TOPRIGHT", anchor, "TOPLEFT", -1, 0)
+	local tab = CreateFrame("Button", name.."ToggleTab"..tabIndex, UIParent)
+	tab:CreatePanel("Default", tabSize, tabSize, "TOPRIGHT", anchor, "TOPLEFT", -1, 0)
 	if tabIndex == 1 then
 		if position == "LEFT" then
-			button:ClearAllPoints()
-			button:Point("TOPRIGHT", anchor, "TOPLEFT", -1, 0)
+			tab:ClearAllPoints()
+			tab:Point("TOPRIGHT", anchor, "TOPLEFT", -1, 0)
 		elseif position == "RIGHT" then
-			button:ClearAllPoints()
-			button:Point("TOPLEFT", anchor, "TOPRIGHT", 1, 0)
+			tab:ClearAllPoints()
+			tab:Point("TOPLEFT", anchor, "TOPRIGHT", 1, 0)
 		elseif position == "TOP" then
-			button:ClearAllPoints()
-			button:Point("BOTTOMLEFT", anchor, "TOPLEFT", 0, 1)
+			tab:ClearAllPoints()
+			tab:Point("BOTTOMLEFT", anchor, "TOPLEFT", 0, 1)
 		elseif position == "BOTTOM" then
-			button:ClearAllPoints()
-			button:Point("TOPLEFT", anchor, "BOTTOMLEFT", 0, -1)
+			tab:ClearAllPoints()
+			tab:Point("TOPLEFT", anchor, "BOTTOMLEFT", 0, -1)
 		end
 	else
 		if position == "LEFT" or position == "RIGHT" then
-			button:CreatePanel(button, tabSize, tabSize, "TOP", tabList[tabIndex-1], "BOTTOM", 0, -tabSpacing)
+			tab:CreatePanel(tab, tabSize, tabSize, "TOP", tabList[tabIndex-1], "BOTTOM", 0, -tabSpacing)
 		else
-			button:CreatePanel(button, tabSize, tabSize, "LEFT", tabList[tabIndex-1], "RIGHT", -tabSpacing, 0)
+			tab:CreatePanel(tab, tabSize, tabSize, "LEFT", tabList[tabIndex-1], "RIGHT", -tabSpacing, 0)
 		end
 	end
-	button:CreateShadow("Default")
-	button:EnableMouse(true)
-	button:RegisterForClicks("AnyUp")
-	if not alwaysVisible then button:SetAlpha(0) end
+	tab:CreateShadow("Default")
+	tab:EnableMouse(true)
+	tab:RegisterForClicks("AnyUp")
+	if not alwaysVisible then tab:SetAlpha(0) end
 
 	-- texture
-	button.texture = button:CreateTexture(nil, "ARTWORK")
-	button.texture:SetTexture(textureName)
-	button.texture:Point("TOPLEFT", button, 2, -2)
-	button.texture:Point("BOTTOMRIGHT", button, -2, 2)
+	tab.texture = tab:CreateTexture(nil, "ARTWORK")
+	tab.texture:SetTexture(textureName)
+	tab.texture:Point("TOPLEFT", tab, 2, -2)
+	tab.texture:Point("BOTTOMRIGHT", tab, -2, 2)
 
 	local function GetframeToToggle()
 		if type(frameToToggle) == "function" then return frameToToggle()
@@ -87,7 +127,7 @@ local function AddTab(anchor, position, name, textureName, alwaysVisible, frameT
 
 	-- hook function
 	local function SetHook(self, frame)
-		if not frame.tabHooked then
+		if not frame.tabMenuHooked then
 			-- hook OnShow/OnHide
 			frame:HookScript("OnShow",
 				function(hooked)
@@ -98,7 +138,7 @@ local function AddTab(anchor, position, name, textureName, alwaysVisible, frameT
 					SetTextureColor(self)
 					if not alwaysVisible then self:SetAlpha(0) end
 				end)
-			frame.tabHooked = true
+			frame.tabMenuHooked = true
 		end
 	end
 
@@ -117,29 +157,29 @@ local function AddTab(anchor, position, name, textureName, alwaysVisible, frameT
 	end
 
 	-- events
-	button:SetScript("OnEnter",
+	tab:SetScript("OnEnter",
 		function(self)
 			local frame = GetframeToToggle()
-			if not alwaysVisible then button:SetAlpha(1) end
+			if not alwaysVisible then tab:SetAlpha(1) end
 			SetTooltip(self, frame)
 		end)
-	button:SetScript("OnLeave",
+	tab:SetScript("OnLeave",
 		function(self)
 			local frame = GetframeToToggle()
-			if frame and not frame:IsShown() and not alwaysVisible then button:SetAlpha(0) end
+			if frame and not frame:IsShown() and not alwaysVisible then tab:SetAlpha(0) end
 			GameTooltip:Hide()
 		end)
-	button:SetScript("OnMouseDown",
+	tab:SetScript("OnMouseDown",
 		function(self)
 			self.texture:Point("TOPLEFT", self, 4, -4)
 			self.texture:Point("BOTTOMRIGHT", self, -4, 4)
 		end)
-	button:SetScript("OnMouseUp",
+	tab:SetScript("OnMouseUp",
 		function(self)
 			self.texture:Point("TOPLEFT", self, 2, -2)
 			self.texture:Point("BOTTOMRIGHT", self, -2, 2)
 		end)
-	button:SetScript("OnClick",
+	tab:SetScript("OnClick",
 		function(self)
 			local frame = GetframeToToggle()
 			-- load addon if not found
@@ -166,27 +206,72 @@ local function AddTab(anchor, position, name, textureName, alwaysVisible, frameT
 		end)
 
 	-- Set texture color
-	SetTextureColor(button)
+	SetTextureColor(tab)
 
 	local frame = GetframeToToggle()
 	if frame then
-		SetHook(button, frame)
+		SetHook(tab, frame)
 	end
 
 	-- save tab in anchor frame
-	if position == "LEFT" then
-		if not anchor.tabLeft then anchor.tabLeft = { button }
-		else anchor.tabLeft[tabIndex] = button end
-	elseif position == "RIGHT" then
-		if not anchor.tabRight then anchor.tabRight = { button }
-		else anchor.tabRight[tabIndex] = button end
-	elseif position == "TOP" then
-		if not anchor.tabTop then anchor.tabTop = { button }
-		else anchor.tabTop[tabIndex] = button end
-	elseif position == "BOTTOM" then
-		if not anchor.tabBottom then anchor.tabBottom = { button }
-		else anchor.tabBottom[tabIndex] = button end
+	AddToTabList(tab, tabIndex, anchor, position)
+end
+
+function Tukui_TabMenu:AddCustomTab(anchor, position, name, textureName)
+	if not anchor then return end
+	-- get tabList and tabIndex
+	local tabList, tabIndex = GetTabListAndIndex(anchor, position)
+
+	-- creation
+	local tab = CreateFrame("Button", name.."CustomTab"..tabIndex, UIParent)
+	tab:CreatePanel(tab, tabSize, tabSize, "TOPRIGHT", anchor, "TOPLEFT", -1, 0)
+	if tabIndex == 1 then
+		if position == "LEFT" then
+			tab:ClearAllPoints()
+			tab:Point("TOPRIGHT", anchor, "TOPLEFT", -1, 0)
+		elseif position == "RIGHT" then
+			tab:ClearAllPoints()
+			tab:Point("TOPLEFT", anchor, "TOPRIGHT", 1, 0)
+		elseif position == "TOP" then
+			tab:ClearAllPoints()
+			tab:Point("BOTTOMLEFT", anchor, "TOPLEFT", 0, 1)
+		elseif position == "BOTTOM" then
+			tab:ClearAllPoints()
+			tab:Point("TOPLEFT", anchor, "BOTTOMLEFT", 0, -1)
+		end
+	else
+		if position == "LEFT" or position == "RIGHT" then
+			tab:CreatePanel(tab, tabSize, tabSize, "TOP", tabList[tabIndex-1], "BOTTOM", 0, -tabSpacing)
+		else
+			tab:CreatePanel(tab, tabSize, tabSize, "LEFT", tabList[tabIndex-1], "RIGHT", -tabSpacing, 0)
+		end
 	end
+	tab:CreateShadow("Default")
+	tab:EnableMouse(true)
+	tab:RegisterForClicks("AnyUp")
+
+	-- texture
+	tab.texture = tab:CreateTexture(nil, "ARTWORK")
+	tab.texture:SetTexture(textureName)
+	tab.texture:Point("TOPLEFT", tab, 2, -2)
+	tab.texture:Point("BOTTOMRIGHT", tab, -2, 2)
+
+	-- events
+	tab:SetScript("OnMouseDown",
+		function(self)
+			self.texture:Point("TOPLEFT", self, 4, -4)
+			self.texture:Point("BOTTOMRIGHT", self, -4, 4)
+		end)
+	tab:SetScript("OnMouseUp",
+		function(self)
+			self.texture:Point("TOPLEFT", self, 2, -2)
+			self.texture:Point("BOTTOMRIGHT", self, -2, 2)
+		end)
+
+	-- save tab in anchor frame
+	AddToTabList(tab, anchor, position)
+	
+	return tab
 end
 
 -------------------------------------------------------------------------
@@ -197,8 +282,8 @@ local tabAnchorLeft = ElvUI and ChatRBGDummy or TukuiChatBackgroundLeft -- C["ch
 
 -- Use a function to pass frame as parameter if you are not sure the frame is already created
 -- Encounter Journal
-AddTab(tabAnchorRight, "LEFT", "Encounter Journal", "Interface\\AddOns\\Tukui_TabMenu\\media\\EJ", true, EncounterJournal)
+Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Encounter Journal", "Interface\\AddOns\\Tukui_TabMenu\\media\\EJ", true, EncounterJournal)
 -- Recount
-AddTab(tabAnchorRight, "LEFT", "Recount", "Interface\\AddOns\\Tukui_TabMenu\\media\\Recount", true, function() return Recount and Recount.MainWindow end)
+Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Recount", "Interface\\AddOns\\Tukui_TabMenu\\media\\Recount", true, function() return Recount and Recount.MainWindow end)
 -- Omen
-AddTab(tabAnchorRight, "LEFT", "Omen", "Interface\\AddOns\\Tukui_TabMenu\\media\\Omen", true, function() return Omen and Omen.Anchor end)
+Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Omen", "Interface\\AddOns\\Tukui_TabMenu\\media\\Omen", true, function() return Omen and Omen.Anchor end)

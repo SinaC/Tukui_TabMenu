@@ -1,5 +1,5 @@
 ## Interface: 40200
-## Version: 3.0
+## Version: 3.1
 ## Author: SinaC
 ## Title: |cffC495DDTukui|r Tab Menu
 ## Credits: Cadayron, Tukz, Elv, Hydra, lduvall
