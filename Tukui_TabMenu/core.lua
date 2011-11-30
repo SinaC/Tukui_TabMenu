@@ -106,7 +106,7 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 	tab.texture:Point("TOPLEFT", tab, 2, -2)
 	tab.texture:Point("BOTTOMRIGHT", tab, -2, 2)
 
-	local function GetframeToToggle()
+	local function GetFrameToToggle()
 		if type(frameToToggle) == "function" then return frameToToggle()
 		elseif type(frameToToggle) == "string" then return _G[frameToToggle]
 		else return frameToToggle end
@@ -114,7 +114,7 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 
 	-- texture color function
 	local function SetTextureColor(self)
-		local frame = GetframeToToggle()
+		local frame = GetFrameToToggle()
 		--print("SetTextureColor:"..(frame and frame:GetName() or "nil").." "..tostring(frame and frame:IsShown() or "nil"))
 		if frame and frame:IsShown() then
 			-- Selected
@@ -159,13 +159,13 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 	-- events
 	tab:SetScript("OnEnter",
 		function(self)
-			local frame = GetframeToToggle()
+			local frame = GetFrameToToggle()
 			if not alwaysVisible then tab:SetAlpha(1) end
 			SetTooltip(self, frame)
 		end)
 	tab:SetScript("OnLeave",
 		function(self)
-			local frame = GetframeToToggle()
+			local frame = GetFrameToToggle()
 			if frame and not frame:IsShown() and not alwaysVisible then tab:SetAlpha(0) end
 			GameTooltip:Hide()
 		end)
@@ -181,7 +181,7 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 		end)
 	tab:SetScript("OnClick",
 		function(self)
-			local frame = GetframeToToggle()
+			local frame = GetFrameToToggle()
 			-- load addon if not found
 			-- if not frame then
 				-- if not IsAddOnLoaded(name) then
@@ -189,7 +189,7 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 					-- local loaded, reason = LoadAddOn(name)
 					-- if loaded then
 						-- print("Loaded successfully")
-						-- frame = GetframeToToggle()
+						-- frame = GetFrameToToggle()
 					-- else
 						-- print("Load failed, reason: ".._G["ADDON_"..reason])
 						-- return
@@ -208,7 +208,7 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 	-- Set texture color
 	SetTextureColor(tab)
 
-	local frame = GetframeToToggle()
+	local frame = GetFrameToToggle()
 	if frame then
 		SetHook(tab, frame)
 	end
