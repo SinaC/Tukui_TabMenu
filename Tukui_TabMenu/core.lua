@@ -65,8 +65,12 @@ end
 -- textureName: path to texture to display on tab
 -- alwaysVisible: if false, tab is visible only when mouseovering it
 -- frameToToggle: frame or frame name or function returning frame
-function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysVisible, frameToToggle)
-	if not anchor then return end
+-- toggleFunc: function to toggle frame (optional)
+function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysVisible, frameToToggle, toggleFunc)
+	if not anchor then
+		print("|CFFFF0000Tukui_TabMenu|r: anchor not found for "..tostring(name))
+		return
+	end
 	-- get tabList and tabIndex
 	local tabList, tabIndex = GetTabListAndIndex(anchor, position)
 	--print("AddToggleTab:"..tostring(tabList).."  "..tostring(tabIndex).."  "..tostring(anchor).."  "..tostring(tabSize))
@@ -181,27 +185,38 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 		end)
 	tab:SetScript("OnClick",
 		function(self)
-			local frame = GetFrameToToggle()
-			-- load addon if not found
-			-- if not frame then
-				-- if not IsAddOnLoaded(name) then
-					-- print("Loading "..name.."...")
-					-- local loaded, reason = LoadAddOn(name)
-					-- if loaded then
-						-- print("Loaded successfully")
-						-- frame = GetFrameToToggle()
-					-- else
-						-- print("Load failed, reason: ".._G["ADDON_"..reason])
-						-- return
+			if toggleFunc then
+				toggleFunc()
+				local frame = GetFrameToToggle()
+				if frame then
+					SetHook(self, frame)
+					SetTooltip(self, frame)
+				else
+					print("Tukui_TabMenu: Frame for "..name.." not found")
+				end
+			else
+				local frame = GetFrameToToggle()
+				-- load addon if not found
+				-- if not frame then
+					-- if not IsAddOnLoaded(name) then
+						-- print("Loading "..name.."...")
+						-- local loaded, reason = LoadAddOn(name)
+						-- if loaded then
+							-- print("Loaded successfully")
+							-- frame = GetFrameToToggle()
+						-- else
+							-- print("Load failed, reason: ".._G["ADDON_"..reason])
+							-- return
+						-- end
 					-- end
 				-- end
-			-- end
-			if frame then
-				SetHook(self, frame)
-				ToggleFrame(frame)
-				SetTooltip(self, frame)
-			else
-				print("Tukui_TabMenu: Frame not found")
+				if frame then
+					SetHook(self, frame)
+					ToggleFrame(frame)
+					SetTooltip(self, frame)
+				else
+					print("Tukui_TabMenu: Frame for "..name.." not found")
+				end
 			end
 		end)
 
@@ -282,7 +297,7 @@ local tabAnchorLeft = ElvUI and ChatRBGDummy or TukuiChatBackgroundLeft -- C["ch
 
 -- Use a function to pass frame as parameter if you are not sure the frame is already created
 -- Encounter Journal
-Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Encounter Journal", "Interface\\AddOns\\Tukui_TabMenu\\media\\EJ", true, EncounterJournal)
+Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Encounter Journal", "Interface\\AddOns\\Tukui_TabMenu\\media\\EJ", true, "EncounterJournal", ToggleEncounterJournal)
 -- Recount
 Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Recount", "Interface\\AddOns\\Tukui_TabMenu\\media\\Recount", true, function() return Recount and Recount.MainWindow end)
 -- Omen
