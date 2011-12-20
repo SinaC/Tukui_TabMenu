@@ -15,9 +15,7 @@
 --	name: tab name
 --	textureName: path to texture to display on tab
 
-local UI
-if ElvUI then UI=ElvUI else UI=Tukui end
-local T, C, L = unpack(UI) -- Import Functions/Constants, Config, Locales
+local T, C, L = unpack(Tukui) -- Import Functions/Constants, Config, Locales
 
 -- Namespace
 Tukui_TabMenu = {}
@@ -290,15 +288,29 @@ function Tukui_TabMenu:AddCustomTab(anchor, position, name, textureName)
 end
 
 -------------------------------------------------------------------------
--- Tabs
+-- Predefined Tabs
 -------------------------------------------------------------------------
-local tabAnchorRight = ElvUI and ChatRBGDummy or TukuiChatBackgroundRight -- C["chat"].["background"] must be set to true
-local tabAnchorLeft = ElvUI and ChatRBGDummy or TukuiChatBackgroundLeft -- C["chat"].["background"] must be set to true
+local PredefinedTabsFrame = CreateFrame("Frame")
+PredefinedTabsFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+PredefinedTabsFrame:SetScript("OnEvent", function(self, event)
+	self:UnregisterEvent("PLAYER_ENTERING_WORLD")
 
--- Use a function to pass frame as parameter if you are not sure the frame is already created
--- Encounter Journal
-Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Encounter Journal", "Interface\\AddOns\\Tukui_TabMenu\\media\\EJ", true, "EncounterJournal", ToggleEncounterJournal)
--- Recount
-Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Recount", "Interface\\AddOns\\Tukui_TabMenu\\media\\Recount", true, function() return Recount and Recount.MainWindow end)
--- Omen
-Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Omen", "Interface\\AddOns\\Tukui_TabMenu\\media\\Omen", true, function() return Omen and Omen.Anchor end)
+	if C.chat.background ~= true then
+		print("Tukui_TabMenu: Chat/Background not set to true in Tukui config, predefined tabs not displayed")
+		return
+	end
+	local tabAnchorRight = TukuiChatBackgroundRight
+	local tabAnchorLeft = TukuiChatBackgroundLeft
+
+	-- Use a function to pass frame as parameter if you are not sure the frame is already created
+	-- Encounter Journal
+	Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Encounter Journal", "Interface\\AddOns\\Tukui_TabMenu\\media\\EJ", true, "EncounterJournal", ToggleEncounterJournal)
+	-- Recount
+	if IsAddOnLoaded("Recount") then
+		Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Recount", "Interface\\AddOns\\Tukui_TabMenu\\media\\Recount", true, Recount.MainWindow)--function() return Recount and Recount.MainWindow end)
+	end
+	-- Omen
+	if IsAddOnLoaded("Omen") then
+		Tukui_TabMenu:AddToggleTab(tabAnchorRight, "LEFT", "Omen", "Interface\\AddOns\\Tukui_TabMenu\\media\\Omen", true, Omen.Anchor)--function() return Omen and Omen.Anchor end)
+	end
+end)

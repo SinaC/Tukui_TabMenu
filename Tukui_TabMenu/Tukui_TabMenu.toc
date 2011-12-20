@@ -1,11 +1,12 @@
 ## Interface: 40300
-## Version: 3.2
+## Version: 3.3
 ## Author: SinaC
 ## Title: |cffC495DDTukui|r Tab Menu
 ## Credits: Cadayron, Tukz, Elv, Hydra, lduvall
 ## Notes: Tabs attached to chat frames
 ## URL: https://github.com/SinaC/Tukui_TabMenu
 ## RequiredDeps: Tukui
+## OptionalDeps: Recount, Omen
 
 settings.lua
 core.lua
