@@ -23,7 +23,8 @@ Tukui_TabMenu = {}
 -- Config
 local tabSize = C.actionbar.buttonsize
 local tabSpacing = C.actionbar.buttonspacing
-local selectionColor = {r = 23/255, g = 132/255, b = 209/255}
+--local selectionColor = {r = 23/255, g = 132/255, b = 209/255}
+local selectionColor = T.UnitColor.class[T.myclass]
 
 local function GetTabListAndIndex(anchor, position)
 	local tabList = nil
@@ -41,7 +42,7 @@ local function GetTabListAndIndex(anchor, position)
 end
 
 local function AddToTabList(tab, tabIndex, anchor, position)
-	--print("AddToTabList: "..tostring(anchor.tabMenuLeft).."  "..tostring(anchor).."  "..tostring(tab))
+--print("AddToTabList: "..tostring(anchor.tabMenuLeft).."  "..tostring(anchor).."  "..tostring(tab))
 	if position == "LEFT" then
 		if not anchor.tabMenuLeft then anchor.tabMenuLeft = { tab }
 		else anchor.tabMenuLeft[tabIndex] = tab end
@@ -71,7 +72,7 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 	end
 	-- get tabList and tabIndex
 	local tabList, tabIndex = GetTabListAndIndex(anchor, position)
-	--print("AddToggleTab:"..tostring(tabList).."  "..tostring(tabIndex).."  "..tostring(anchor).."  "..tostring(tabSize))
+--print("AddToggleTab:"..tostring(tabList).."  "..tostring(tabIndex).."  "..tostring(anchor).."  "..tostring(tabSize))
 
 	-- creation
 	local tab = CreateFrame("Button", name.."ToggleTab"..tabIndex, UIParent)
@@ -117,10 +118,12 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 	-- texture color function
 	local function SetTextureColor(self)
 		local frame = GetFrameToToggle()
-		--print("SetTextureColor:"..(frame and frame:GetName() or "nil").." "..tostring(frame and frame:IsShown() or "nil"))
+--print("SetTextureColor:"..(frame and frame:GetName() or "nil").." "..tostring(frame and frame:IsShown() or "nil"))
 		if frame and frame:IsShown() then
 			-- Selected
-			self.texture:SetVertexColor(35/255, 164/255, 255/255)
+			--self.texture:SetVertexColor(35/255, 164/255, 255/255)
+			--self.texture:SetVertexColor(selectionColor.r, selectionColor.g, selectionColor.b)
+			self.texture:SetVertexColor(unpack(selectionColor))
 		else
 			-- Not selected
 			self.texture:SetVertexColor(1, 1, 1)
@@ -142,6 +145,7 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 				end)
 			frame.tabMenuHooked = true
 		end
+		SetTextureColor(self)
 	end
 
 	-- tooltip function
@@ -151,9 +155,11 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 		GameTooltip:SetPoint("BOTTOM", self, "TOP", 0, T.mult)
 		GameTooltip:ClearLines()
 		if frame and frame:IsShown() then
-			GameTooltip:AddDoubleLine(HIDE, name, selectionColor.r, selectionColor.g, selectionColor.b, 1, 1, 1)
+			--GameTooltip:AddDoubleLine(HIDE, name, selectionColor.r, selectionColor.g, selectionColor.b, 1, 1, 1)
+			GameTooltip:AddDoubleLine(HIDE, name, selectionColor[1], selectionColor[2], selectionColor[3], 1, 1, 1)
 		else
-			GameTooltip:AddDoubleLine(SHOW, name, selectionColor.r, selectionColor.g, selectionColor.b, 1, 1, 1)
+			--GameTooltip:AddDoubleLine(SHOW, name, selectionColor.r, selectionColor.g, selectionColor.b, 1, 1, 1)
+			GameTooltip:AddDoubleLine(SHOW, name, selectionColor[1], selectionColor[2], selectionColor[3], 1, 1, 1)
 		end
 		GameTooltip:Show()
 	end
@@ -186,6 +192,7 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 			if toggleFunc then
 				toggleFunc()
 				local frame = GetFrameToToggle()
+--print("OnClick:"..tostring(frame and frame:GetName() or "no frame"))
 				if frame then
 					SetHook(self, frame)
 					SetTooltip(self, frame)
