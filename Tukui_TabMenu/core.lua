@@ -76,26 +76,30 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 
 	-- creation
 	local tab = CreateFrame("Button", name.."ToggleTab"..tabIndex, UIParent)
-	tab:CreatePanel("Default", tabSize, tabSize, "TOPRIGHT", anchor, "TOPLEFT", -1, 0)
+	--tab:CreatePanel("Default", tabSize, tabSize, "TOPRIGHT", anchor, "TOPLEFT", -1, 0)
+	tab:SetTemplate()
+	tab:Size(tabSize)
 	if tabIndex == 1 then
 		if position == "LEFT" then
-			tab:ClearAllPoints()
+			--tab:ClearAllPoints()
 			tab:Point("TOPRIGHT", anchor, "TOPLEFT", -1, 0)
 		elseif position == "RIGHT" then
-			tab:ClearAllPoints()
+			--tab:ClearAllPoints()
 			tab:Point("TOPLEFT", anchor, "TOPRIGHT", 1, 0)
 		elseif position == "TOP" then
-			tab:ClearAllPoints()
+			--tab:ClearAllPoints()
 			tab:Point("BOTTOMLEFT", anchor, "TOPLEFT", 0, 1)
 		elseif position == "BOTTOM" then
-			tab:ClearAllPoints()
+			--tab:ClearAllPoints()
 			tab:Point("TOPLEFT", anchor, "BOTTOMLEFT", 0, -1)
 		end
 	else
 		if position == "LEFT" or position == "RIGHT" then
-			tab:CreatePanel(tab, tabSize, tabSize, "TOP", tabList[tabIndex-1], "BOTTOM", 0, -tabSpacing)
+			--tab:CreatePanel(tab, tabSize, tabSize, "TOP", tabList[tabIndex-1], "BOTTOM", 0, -tabSpacing)
+			tab:Point("TOP", tabList[tabIndex-1], "BOTTOM", 0, -tabSpacing)
 		else
-			tab:CreatePanel(tab, tabSize, tabSize, "LEFT", tabList[tabIndex-1], "RIGHT", -tabSpacing, 0)
+			--tab:CreatePanel(tab, tabSize, tabSize, "LEFT", tabList[tabIndex-1], "RIGHT", -tabSpacing, 0)
+			tab:Point("LEFT", tabList[tabIndex-1], "RIGHT", -tabSpacing, 0)
 		end
 	end
 	tab:CreateShadow("Default")
@@ -244,26 +248,30 @@ function Tukui_TabMenu:AddCustomTab(anchor, position, name, textureName)
 
 	-- creation
 	local tab = CreateFrame("Button", name.."CustomTab"..tabIndex, UIParent)
-	tab:CreatePanel(tab, tabSize, tabSize, "TOPRIGHT", anchor, "TOPLEFT", -1, 0)
+	--tab:CreatePanel(tab, tabSize, tabSize, "TOPRIGHT", anchor, "TOPLEFT", -1, 0)
+	tab:SetTemplate()
+	tab:Size(tabSize)
 	if tabIndex == 1 then
 		if position == "LEFT" then
-			tab:ClearAllPoints()
+			--tab:ClearAllPoints()
 			tab:Point("TOPRIGHT", anchor, "TOPLEFT", -1, 0)
 		elseif position == "RIGHT" then
-			tab:ClearAllPoints()
+			--tab:ClearAllPoints()
 			tab:Point("TOPLEFT", anchor, "TOPRIGHT", 1, 0)
 		elseif position == "TOP" then
-			tab:ClearAllPoints()
+			--tab:ClearAllPoints()
 			tab:Point("BOTTOMLEFT", anchor, "TOPLEFT", 0, 1)
 		elseif position == "BOTTOM" then
-			tab:ClearAllPoints()
+			--tab:ClearAllPoints()
 			tab:Point("TOPLEFT", anchor, "BOTTOMLEFT", 0, -1)
 		end
 	else
 		if position == "LEFT" or position == "RIGHT" then
-			tab:CreatePanel(tab, tabSize, tabSize, "TOP", tabList[tabIndex-1], "BOTTOM", 0, -tabSpacing)
+			--tab:CreatePanel(tab, tabSize, tabSize, "TOP", tabList[tabIndex-1], "BOTTOM", 0, -tabSpacing)
+			tab:Point("TOP", tabList[tabIndex-1], "BOTTOM", 0, -tabSpacing)
 		else
-			tab:CreatePanel(tab, tabSize, tabSize, "LEFT", tabList[tabIndex-1], "RIGHT", -tabSpacing, 0)
+			--tab:CreatePanel(tab, tabSize, tabSize, "LEFT", tabList[tabIndex-1], "RIGHT", -tabSpacing, 0)
+			tab:Point("LEFT", tabList[tabIndex-1], "RIGHT", -tabSpacing, 0)
 		end
 	end
 	tab:CreateShadow("Default")
