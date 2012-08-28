@@ -1,7 +1,7 @@
 --## OptionalDeps: Recount, Omen
 
 -- APIs
--- AddToggleTab(anchor, position, name, textureName, alwaysVisible, frameToToggle) no return value
+-- AddToggleTab(anchor, position, name, textureName, alwaysVisible, frameToToggle [, toggleFunc]) no return value
 --	anchor: tab anchor
 --	position: LEFT, RIGHT, TOP, BOTTOM (position of tab relative to anchor)
 --	name: tab name
@@ -25,6 +25,19 @@ local tabSize = C.actionbar.buttonsize
 local tabSpacing = C.actionbar.buttonspacing
 --local selectionColor = {r = 23/255, g = 132/255, b = 209/255}
 local selectionColor = T.UnitColor.class[T.myclass]
+
+-- Wrapper for the desaturation function
+local function SetDesaturation(texture, desaturation)
+	local shaderSupported = texture:SetDesaturated(desaturation)
+	if not shaderSupported then
+		if desaturation then
+			texture:SetVertexColor(0.5, 0.5, 0.5)
+		else
+			texture:SetVertexColor(1.0, 1.0, 1.0)
+		end
+		
+	end
+end
 
 local function GetTabListAndIndex(anchor, position)
 	local tabList = nil
@@ -75,7 +88,7 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 --print("AddToggleTab:"..tostring(tabList).."  "..tostring(tabIndex).."  "..tostring(anchor).."  "..tostring(tabSize))
 
 	-- creation
-	local tab = CreateFrame("Button", name.."ToggleTab"..tabIndex, UIParent)
+	local tab = CreateFrame("Button", name.."ToggleTab"..tabIndex, TukuiPetBattleHider)
 	--tab:CreatePanel("Default", tabSize, tabSize, "TOPRIGHT", anchor, "TOPLEFT", -1, 0)
 	tab:SetTemplate()
 	tab:Size(tabSize)
@@ -131,6 +144,7 @@ function Tukui_TabMenu:AddToggleTab(anchor, position, name, textureName, alwaysV
 		else
 			-- Not selected
 			self.texture:SetVertexColor(1, 1, 1)
+			--SetDesaturation(self.texture, 1)
 		end
 	end
 
@@ -247,7 +261,7 @@ function Tukui_TabMenu:AddCustomTab(anchor, position, name, textureName)
 	local tabList, tabIndex = GetTabListAndIndex(anchor, position)
 
 	-- creation
-	local tab = CreateFrame("Button", name.."CustomTab"..tabIndex, UIParent)
+	local tab = CreateFrame("Button", name.."CustomTab"..tabIndex, TukuiPetBattleHider)
 	--tab:CreatePanel(tab, tabSize, tabSize, "TOPRIGHT", anchor, "TOPLEFT", -1, 0)
 	tab:SetTemplate()
 	tab:Size(tabSize)
@@ -281,6 +295,9 @@ function Tukui_TabMenu:AddCustomTab(anchor, position, name, textureName)
 	-- texture
 	tab.texture = tab:CreateTexture(nil, "ARTWORK")
 	tab.texture:SetTexture(textureName)
+	--tab.texture:SetDesaturated(1)
+	SetDesaturation(tab.texture, 1)
+	tab.texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 	tab.texture:Point("TOPLEFT", tab, 2, -2)
 	tab.texture:Point("BOTTOMRIGHT", tab, -2, 2)
 
@@ -297,8 +314,8 @@ function Tukui_TabMenu:AddCustomTab(anchor, position, name, textureName)
 		end)
 
 	-- save tab in anchor frame
-	AddToTabList(tab, anchor, position)
-	
+	AddToTabList(tab, tabIndex, anchor, position)
+
 	return tab
 end
 
