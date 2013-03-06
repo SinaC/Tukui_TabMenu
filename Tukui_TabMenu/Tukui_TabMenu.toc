@@ -1,5 +1,5 @@
-## Interface: 50100
-## Version: 3.6
+## Interface: 50200
+## Version: 3.7
 ## Author: SinaC
 ## Title: |cffC495DDTukui|r Tab Menu
 ## Credits: Cadayron, Tukz, Elv, Hydra, lduvall
